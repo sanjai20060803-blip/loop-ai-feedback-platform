@@ -137,7 +137,12 @@ export default function LoginPage() {
           Login
         </button>
 
-
+         <p
+className="text-sm text-center cursor-pointer"
+onClick={()=>router.push("/signup")}
+>
+Create new account
+</p>
       </form>
 
 
