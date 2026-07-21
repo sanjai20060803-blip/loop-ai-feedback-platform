@@ -5,11 +5,27 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding database...");
 
-  const hashedPassword = await bcrypt.hash("Password@123", 10);
+  console.log("🌱 Resetting demo accounts...");
 
-  // Create Workspace
+  // Delete existing demo users
+  await prisma.user.deleteMany({
+    where: {
+      email: {
+        in: [
+          "admin@loop.com",
+          "analyst@loop.com",
+          "viewer@loop.com",
+        ],
+      },
+    },
+  });
+
+
+  const password = await bcrypt.hash("123456", 10);
+
+
+  // Workspace
   const workspace = await prisma.workspace.upsert({
     where: {
       slug: "loop-demo",
@@ -21,59 +37,66 @@ async function main() {
     },
   });
 
-  // Admin
-  await prisma.user.upsert({
-    where: {
-      email: "admin@loop.com",
-    },
-    update: {},
-    create: {
+
+  // ADMIN
+  await prisma.user.create({
+    data: {
       name: "Admin",
       email: "admin@loop.com",
-      password: hashedPassword,
+      password,
       role: UserRole.ADMIN,
       workspaceId: workspace.id,
     },
   });
 
-  // Analyst
-  await prisma.user.upsert({
-    where: {
-      email: "analyst@loop.com",
-    },
-    update: {},
-    create: {
+
+  // ANALYST
+  await prisma.user.create({
+    data: {
       name: "Analyst",
       email: "analyst@loop.com",
-      password: hashedPassword,
+      password,
       role: UserRole.ANALYST,
       workspaceId: workspace.id,
     },
   });
 
-  // Viewer
-  await prisma.user.upsert({
-    where: {
-      email: "viewer@loop.com",
-    },
-    update: {},
-    create: {
+
+  // VIEWER
+  await prisma.user.create({
+    data: {
       name: "Viewer",
       email: "viewer@loop.com",
-      password: hashedPassword,
+      password,
       role: UserRole.VIEWER,
       workspaceId: workspace.id,
     },
   });
 
-  console.log("✅ Seed completed.");
+
+  console.log("✅ Demo users recreated");
+
+  console.log(`
+  ADMIN
+  Email: admin@loop.com
+  Password: 123456
+
+  ANALYST
+  Email: analyst@loop.com
+  Password: 123456
+
+  VIEWER
+  Email: viewer@loop.com
+  Password: 123456
+  `);
 }
 
+
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+.catch((error)=>{
+  console.error(error);
+  process.exit(1);
+})
+.finally(async()=>{
+  await prisma.$disconnect();
+});
