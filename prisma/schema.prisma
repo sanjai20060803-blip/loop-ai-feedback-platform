@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Workspace {
+  id         String      @id @default(cuid())
+  name       String
+  slug       String      @unique
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  embeddings Embedding[]
+  feedbacks  Feedback[]
+  reports    Report[]
+  themes     Theme[]
+  users      User[]
+}
+
+model User {
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  password    String
+  role        UserRole  @default(VIEWER)
+  workspaceId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  reports     Report[]
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+}
+
+model Feedback {
+  id                String          @id @default(cuid())
+  title             String?
+  content           String
+  channel           FeedbackChannel
+  sentiment         Sentiment?
+  status            FeedbackStatus  @default(NEW)
+  customerLabel     String?
+  workspaceId       String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  priority          String?
+  suggestedResponse String?
+  summary           String?
+  urgency           String?
+  embeddings        Embedding[]
+  workspace         Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  themes            FeedbackTheme[]
+
+  @@index([workspaceId])
+  @@index([channel])
+  @@index([status])
+  @@index([sentiment])
+}
+
+model Theme {
+  id          String          @id @default(cuid())
+  name        String
+  workspaceId String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  feedbacks   FeedbackTheme[]
+  workspace   Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+model FeedbackTheme {
+  feedbackId String
+  themeId    String
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  theme      Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@id([feedbackId, themeId])
+  @@index([themeId])
+}
+
+model Report {
+  id          String    @id @default(cuid())
+  title       String
+  summary     String
+  workspaceId String
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+}
+
+model Embedding {
+  id          String    @id @default(cuid())
+  feedbackId  String
+  workspaceId String
+  embedding   Json
+  createdAt   DateTime  @default(now())
+  feedback    Feedback  @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+enum UserRole {
+  ADMIN
+  ANALYST
+  VIEWER
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum FeedbackStatus {
+  NEW
+  IN_REVIEW
+  RESOLVED
+  ARCHIVED
+}
+
+enum FeedbackChannel {
+  MANUAL
+  CSV
+  SUPPORT_TICKET
+  APP_STORE
+  NPS_SURVEY
+  SALES_CALL
+  COMMUNITY
+  EMAIL
+}
