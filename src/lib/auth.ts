@@ -20,37 +20,46 @@ export const authOptions: NextAuthOptions = {
       },
 
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+  if (!credentials?.email || !credentials?.password) {
+    console.log("Missing credentials");
+    return null;
+  }
 
-        const user = await db.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        });
+  console.log("Login attempt:", credentials.email);
 
-        if (!user) {
-          return null;
-        }
+  const user = await db.user.findUnique({
+    where: {
+      email: credentials.email,
+    },
+  });
 
-        const passwordMatch = await compare(
-          credentials.password,
-          user.password
-        );
+  console.log("User found:", !!user);
 
-        if (!passwordMatch) {
-          return null;
-        }
+  if (!user) {
+    return null;
+  }
 
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          workspaceId: user.workspaceId,
-        };
-      },
+  const passwordMatch = await compare(
+    credentials.password,
+    user.password
+  );
+
+  console.log("Password match:", passwordMatch);
+
+  if (!passwordMatch) {
+    return null;
+  }
+
+  console.log("Login success");
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    workspaceId: user.workspaceId,
+  };
+}
     }),
   ],
 
