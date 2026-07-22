@@ -20,12 +20,13 @@ export const authOptions: NextAuthOptions = {
       },
 
       async authorize(credentials) {
+  console.log("=== LOGIN ATTEMPT ===");
+  console.log("Email:", credentials?.email);
+
   if (!credentials?.email || !credentials?.password) {
     console.log("Missing credentials");
     return null;
   }
-
-  console.log("Login attempt:", credentials.email);
 
   const user = await db.user.findUnique({
     where: {
@@ -50,7 +51,7 @@ export const authOptions: NextAuthOptions = {
     return null;
   }
 
-  console.log("Login success");
+  console.log("Login successful");
 
   return {
     id: user.id,
