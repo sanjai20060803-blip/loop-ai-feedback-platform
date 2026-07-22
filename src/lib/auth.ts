@@ -20,46 +20,54 @@ export const authOptions: NextAuthOptions = {
       },
 
       async authorize(credentials) {
-  console.log("=== LOGIN ATTEMPT ===");
-  console.log("Email:", credentials?.email);
+  try {
+    console.log("=== LOGIN ATTEMPT ===");
+    console.log("Email:", credentials?.email);
 
-  if (!credentials?.email || !credentials?.password) {
-    console.log("Missing credentials");
-    return null;
+    if (!credentials?.email || !credentials?.password) {
+      console.log("Missing credentials");
+      return null;
+    }
+
+    const user = await db.user.findUnique({
+      where: {
+        email: credentials.email,
+      },
+    });
+
+    console.log("User object:", user);
+
+    if (!user) {
+      console.log("User not found");
+      return null;
+    }
+
+    console.log("Stored hash:", user.password);
+
+    const passwordMatch = await compare(
+      credentials.password,
+      user.password
+    );
+
+    console.log("Password match:", passwordMatch);
+
+    if (!passwordMatch) {
+      return null;
+    }
+
+    console.log("Login successful");
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      workspaceId: user.workspaceId,
+    };
+  } catch (err) {
+    console.error("AUTHORIZE ERROR:", err);
+    throw err;
   }
-
-  const user = await db.user.findUnique({
-    where: {
-      email: credentials.email,
-    },
-  });
-
-  console.log("User found:", !!user);
-
-  if (!user) {
-    return null;
-  }
-
-  const passwordMatch = await compare(
-    credentials.password,
-    user.password
-  );
-
-  console.log("Password match:", passwordMatch);
-
-  if (!passwordMatch) {
-    return null;
-  }
-
-  console.log("Login successful");
-
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    workspaceId: user.workspaceId,
-  };
 }
     }),
   ],
