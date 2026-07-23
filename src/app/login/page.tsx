@@ -86,7 +86,7 @@ export default function LoginPage() {
             <span className="font-medium">
               Password:
             </span>{" "}
-            123456
+             Password123
           </p>
 
 
