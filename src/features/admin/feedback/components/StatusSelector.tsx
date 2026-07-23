@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { FeedbackStatus } from "@/generated/prisma/enums";
+import { FeedbackStatus } from "@/generated/prisma";
 import { updateFeedbackStatus } from "../actions/feedback.actions";
 
 interface Props {

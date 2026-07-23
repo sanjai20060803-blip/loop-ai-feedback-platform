@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { FeedbackStatus } from "@/generated/prisma/enums";
+import { FeedbackStatus } from "@/generated/prisma";
 
 export async function updateFeedbackStatus(
   feedbackId: string,

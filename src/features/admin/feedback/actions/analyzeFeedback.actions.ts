@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { ai } from "@/lib/gemini";
-import { Sentiment } from "@/generated/prisma/enums";
+import { Sentiment } from "@/generated/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function analyzeFeedback(feedbackId: string) {
